@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { ChromePicker } from 'react-color'
 import { TrashIcon } from '@heroicons/react/24/outline'
 import { useEditorStore } from '../store/editorStore'
+import RoomManager from './RoomManager'
 import api from '../services/api'
 
 const PropertiesPanel = ({ element }) => {
@@ -9,6 +10,7 @@ const PropertiesPanel = ({ element }) => {
   const [entities, setEntities] = useState([])
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [selectedColor, setSelectedColor] = useState('#000000')
+  const [rooms, setRooms] = useState([])
 
   useEffect(() => {
     loadEntities()
@@ -56,12 +58,38 @@ const PropertiesPanel = ({ element }) => {
     deleteElement(element.elementId)
   }
 
+  const handleAddRoom = (roomData) => {
+    setRooms([...rooms, roomData])
+  }
+
+  const handleEditRoom = (roomData) => {
+    setRooms(rooms.map(room => room.id === roomData.id ? roomData : room))
+  }
+
+  const handleDeleteRoom = (roomId) => {
+    if (window.confirm('Czy na pewno chcesz usunąć to pomieszczenie?')) {
+      setRooms(rooms.filter(room => room.id !== roomId))
+    }
+  }
+
+  const isRoomElement = element?.elementType && ['wall', 'door', 'window', 'room'].includes(element.elementType)
+
   if (!element) {
     return (
       <div className="h-full p-4">
-        <div className="text-center py-8">
-          <div className="text-gray-400 text-sm">
-            Wybierz element aby edytować właściwości
+        <div className="space-y-6">
+          {/* Room management when no element is selected */}
+          <RoomManager 
+            rooms={rooms}
+            onAddRoom={handleAddRoom}
+            onEditRoom={handleEditRoom}
+            onDeleteRoom={handleDeleteRoom}
+          />
+          
+          <div className="text-center py-8">
+            <div className="text-gray-400 text-sm">
+              Wybierz element aby edytować właściwości
+            </div>
           </div>
         </div>
       </div>
@@ -120,34 +148,109 @@ const PropertiesPanel = ({ element }) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="form-label">Szerokość</label>
-                <input
-                  type="number"
-                  value={Math.round((element.width || 0) * (element.scaleX || 1))}
-                  onChange={(e) => {
-                    const newWidth = parseFloat(e.target.value)
-                    const scaleX = newWidth / (element.width || 1)
-                    handlePropertyChange('scaleX', scaleX)
-                  }}
-                  className="form-input"
-                />
+            {/* Different properties for room elements vs devices */}
+            {isRoomElement ? (
+              // Room element properties (walls, doors, windows)
+              <div className="space-y-3">
+                {element.elementType === 'wall' && (
+                  <div>
+                    <label className="form-label">Grubość ściany</label>
+                    <input
+                      type="number"
+                      min="5"
+                      max="30"
+                      value={element.strokeWidth || 10}
+                      onChange={(e) => handlePropertyChange('strokeWidth', parseFloat(e.target.value))}
+                      className="form-input"
+                    />
+                  </div>
+                )}
+                
+                {element.elementType === 'door' && (
+                  <div>
+                    <label className="form-label">Szerokość drzwi</label>
+                    <input
+                      type="number"
+                      min="40"
+                      max="120"
+                      value={Math.round((element.width || 0) * (element.scaleX || 1))}
+                      onChange={(e) => {
+                        const newWidth = parseFloat(e.target.value)
+                        const scaleX = newWidth / (element.width || 1)
+                        handlePropertyChange('scaleX', scaleX)
+                      }}
+                      className="form-input"
+                    />
+                  </div>
+                )}
+                
+                {element.elementType === 'window' && (
+                  <div>
+                    <label className="form-label">Szerokość okna</label>
+                    <input
+                      type="number"
+                      min="30"
+                      max="200"
+                      value={Math.round((element.width || 0) * (element.scaleX || 1))}
+                      onChange={(e) => {
+                        const newWidth = parseFloat(e.target.value)
+                        const scaleX = newWidth / (element.width || 1)
+                        handlePropertyChange('scaleX', scaleX)
+                      }}
+                      className="form-input"
+                    />
+                  </div>
+                )}
+                
+                {element.elementType === 'room' && (
+                  <div>
+                    <label className="form-label">Pomieszczenie</label>
+                    <select
+                      value={element.roomId || ''}
+                      onChange={(e) => handlePropertyChange('roomId', e.target.value)}
+                      className="form-input"
+                    >
+                      <option value="">Wybierz pomieszczenie...</option>
+                      {rooms.map((room) => (
+                        <option key={room.id} value={room.id}>
+                          {room.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
-              <div>
-                <label className="form-label">Wysokość</label>
-                <input
-                  type="number"
-                  value={Math.round((element.height || 0) * (element.scaleY || 1))}
-                  onChange={(e) => {
-                    const newHeight = parseFloat(e.target.value)
-                    const scaleY = newHeight / (element.height || 1)
-                    handlePropertyChange('scaleY', scaleY)
-                  }}
-                  className="form-input"
-                />
+            ) : (
+              // Device element properties
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="form-label">Szerokość</label>
+                  <input
+                    type="number"
+                    value={Math.round((element.width || 0) * (element.scaleX || 1))}
+                    onChange={(e) => {
+                      const newWidth = parseFloat(e.target.value)
+                      const scaleX = newWidth / (element.width || 1)
+                      handlePropertyChange('scaleX', scaleX)
+                    }}
+                    className="form-input"
+                  />
+                </div>
+                <div>
+                  <label className="form-label">Wysokość</label>
+                  <input
+                    type="number"
+                    value={Math.round((element.height || 0) * (element.scaleY || 1))}
+                    onChange={(e) => {
+                      const newHeight = parseFloat(e.target.value)
+                      const scaleY = newHeight / (element.height || 1)
+                      handlePropertyChange('scaleY', scaleY)
+                    }}
+                    className="form-input"
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             <div>
               <label className="form-label">Obrót (°)</label>
@@ -209,44 +312,69 @@ const PropertiesPanel = ({ element }) => {
           </div>
         </div>
 
-        {/* Home Assistant integration */}
-        <div>
-          <h3 className="text-sm font-medium text-gray-900 mb-3">Integracja HA</h3>
-          
-          <div className="space-y-3">
+        {/* Home Assistant integration - only for device elements */}
+        {!isRoomElement && (
+          <div>
+            <h3 className="text-sm font-medium text-gray-900 mb-3">Integracja HA</h3>
+            
+            <div className="space-y-3">
+              <div>
+                <label className="form-label">Encja</label>
+                <select
+                  value={element.entityId || ''}
+                  onChange={(e) => handlePropertyChange('entityId', e.target.value)}
+                  className="form-input"
+                >
+                  <option value="">Wybierz encję...</option>
+                  {entities.map((entity) => (
+                    <option key={entity.entity_id} value={entity.entity_id}>
+                      {entity.friendly_name} ({entity.entity_id})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {element.entityId && (
+                <div>
+                  <label className="form-label">Akcja po kliknięciu</label>
+                  <select
+                    value={element.clickAction || 'more-info'}
+                    onChange={(e) => handlePropertyChange('clickAction', e.target.value)}
+                    className="form-input"
+                  >
+                    <option value="more-info">Pokaż więcej informacji</option>
+                    <option value="toggle">Przełącz stan</option>
+                    <option value="navigate">Przejdź do widoku</option>
+                    <option value="call-service">Wywołaj usługę</option>
+                  </select>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Room assignment for device elements */}
+        {!isRoomElement && (
+          <div>
+            <h3 className="text-sm font-medium text-gray-900 mb-3">Pomieszczenie</h3>
+            
             <div>
-              <label className="form-label">Encja</label>
+              <label className="form-label">Przypisz do pomieszczenia</label>
               <select
-                value={element.entityId || ''}
-                onChange={(e) => handlePropertyChange('entityId', e.target.value)}
+                value={element.roomId || ''}
+                onChange={(e) => handlePropertyChange('roomId', e.target.value)}
                 className="form-input"
               >
-                <option value="">Wybierz encję...</option>
-                {entities.map((entity) => (
-                  <option key={entity.entity_id} value={entity.entity_id}>
-                    {entity.friendly_name} ({entity.entity_id})
+                <option value="">Brak przypisania</option>
+                {rooms.map((room) => (
+                  <option key={room.id} value={room.id}>
+                    {room.name}
                   </option>
                 ))}
               </select>
             </div>
-
-            {element.entityId && (
-              <div>
-                <label className="form-label">Akcja po kliknięciu</label>
-                <select
-                  value={element.clickAction || 'more-info'}
-                  onChange={(e) => handlePropertyChange('clickAction', e.target.value)}
-                  className="form-input"
-                >
-                  <option value="more-info">Pokaż więcej informacji</option>
-                  <option value="toggle">Przełącz stan</option>
-                  <option value="navigate">Przejdź do widoku</option>
-                  <option value="call-service">Wywołaj usługę</option>
-                </select>
-              </div>
-            )}
           </div>
-        </div>
+        )}
 
         {/* States configuration */}
         {element.entityId && (

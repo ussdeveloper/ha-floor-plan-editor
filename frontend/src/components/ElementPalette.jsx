@@ -7,6 +7,7 @@ import {
   SpeakerWaveIcon,
   ThermometerIcon
 } from '@heroicons/react/24/outline'
+import RoomPalette from './RoomPalette'
 
 const elementTypes = [
   {
@@ -81,8 +82,8 @@ const elementTypes = [
   }
 ]
 
-const ElementPalette = () => {
-  const [activeCategory, setActiveCategory] = useState('devices')
+const ElementPalette = ({ activeDrawingTool, setActiveDrawingTool }) => {
+  const [activeCategory, setActiveCategory] = useState('room')
 
   return (
     <div className="h-full flex flex-col">
@@ -91,6 +92,16 @@ const ElementPalette = () => {
         
         {/* Category tabs */}
         <div className="mt-3 flex space-x-1">
+          <button
+            onClick={() => setActiveCategory('room')}
+            className={`px-3 py-1 text-sm rounded-md ${
+              activeCategory === 'room'
+                ? 'bg-blue-100 text-blue-700'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Plan
+          </button>
           <button
             onClick={() => setActiveCategory('devices')}
             className={`px-3 py-1 text-sm rounded-md ${
@@ -115,6 +126,13 @@ const ElementPalette = () => {
       </div>
 
       <div className="flex-1 p-4 overflow-y-auto">
+        {activeCategory === 'room' && (
+          <RoomPalette 
+            activeDrawingTool={activeDrawingTool}
+            setActiveDrawingTool={setActiveDrawingTool}
+          />
+        )}
+        
         {activeCategory === 'devices' && (
           <div className="space-y-2">
             {elementTypes.map((elementType) => (

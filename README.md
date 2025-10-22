@@ -13,7 +13,9 @@ HA Floor Plan Editor to addon dla Home Assistant, który umożliwia łatwe tworz
 
 ## Funkcje
 
+- **Edytor planu pomieszczeń**: Proste narzędzia do rysowania ścian, drzwi i okien
 - **Graficzny edytor**: Intuicyjny interfejs przeciągnij i upuść
+- **Definicja pomieszczeń**: Tworzenie i nazywanie pomieszczeń
 - **Integracja z HA**: Automatyczne wykrywanie urządzeń z Home Assistant
 - **Podgląd na żywo**: Podgląd planu w czasie rzeczywistym
 - **Eksport konfiguracji**: Generowanie YAML i CSS dla ha-floorplan

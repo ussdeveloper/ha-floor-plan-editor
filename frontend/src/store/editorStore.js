@@ -6,6 +6,7 @@ export const useEditorStore = create((set, get) => ({
   currentProject: null,
   selectedElement: null,
   elements: [],
+  roomElements: [], // New: elements for room structure (walls, doors, windows)
   canvas: null,
   zoom: 100,
   gridEnabled: true,
@@ -19,19 +20,28 @@ export const useEditorStore = create((set, get) => ({
   
   setElements: (elements) => set({ elements, isDirty: true }),
   
+  setRoomElements: (roomElements) => set({ roomElements, isDirty: true }),
+  
   addElement: (element) => set((state) => ({
-    elements: [...state.elements, { ...element, id: Date.now().toString() }],
+    elements: [...state.elements, { ...element, id: element.id || Date.now().toString() }],
+    isDirty: true
+  })),
+  
+  addRoomElement: (element) => set((state) => ({
+    roomElements: [...state.roomElements, { ...element, id: element.id || Date.now().toString() }],
     isDirty: true
   })),
   
   updateElement: (id, updates) => set((state) => ({
     elements: state.elements.map(el => el.id === id ? { ...el, ...updates } : el),
+    roomElements: state.roomElements.map(el => el.id === id ? { ...el, ...updates } : el),
     isDirty: true
   })),
   
   deleteElement: (id) => set((state) => ({
     elements: state.elements.filter(el => el.id !== id),
-    selectedElement: state.selectedElement?.id === id ? null : state.selectedElement,
+    roomElements: state.roomElements.filter(el => el.id !== id),
+    selectedElement: state.selectedElement?.elementId === id ? null : state.selectedElement,
     isDirty: true
   })),
   
@@ -52,6 +62,7 @@ export const useEditorStore = create((set, get) => ({
       modified: new Date().toISOString()
     },
     elements: [],
+    roomElements: [],
     selectedElement: null,
     isDirty: false
   }),
@@ -66,6 +77,7 @@ export const useEditorStore = create((set, get) => ({
           ...project
         },
         elements: project.elements || [],
+        roomElements: project.roomElements || [],
         selectedElement: null,
         isDirty: false
       })
@@ -79,6 +91,7 @@ export const useEditorStore = create((set, get) => ({
     const state = get()
     const config = {
       elements: state.elements,
+      roomElements: state.roomElements,
       canvas: state.canvas,
       created: state.currentProject?.created || new Date().toISOString(),
       modified: new Date().toISOString()

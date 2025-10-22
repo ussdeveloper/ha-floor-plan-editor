@@ -39,6 +39,10 @@
 ## Interfejs użytkownika
 
 ### Paleta elementów (lewa strona)
+- **Plan**: Narzędzia do rysowania planu pomieszczenia
+  - Narzędzie wyboru i rysowania ścian
+  - Ściany, drzwi, okna
+  - Definicje pomieszczeń
 - **Urządzenia**: Światła, przełączniki, czujniki, kamery
 - **Kształty**: Podstawowe kształty geometryczne (w przyszłych wersjach)
 
@@ -51,7 +55,9 @@
 ### Panel właściwości (prawa strona)
 - Podstawowe właściwości: pozycja, rozmiar, obrót
 - Wygląd: kolor, przezroczystość
-- Integracja HA: mapowanie encji, akcje
+- **Zarządzanie pomieszczeniami**: Definiowanie i organizacja pomieszczeń
+- **Integracja HA**: mapowanie encji, akcje (tylko urządzenia)
+- **Przypisanie do pomieszczeń**: Organizacja urządzeń według lokalizacji
 - Konfiguracja stanów
 
 ### Pasek narzędzi (góra)
@@ -61,7 +67,39 @@
 
 ## Tworzenie planów
 
-### Dodawanie elementów
+### Rysowanie planu pomieszczenia
+
+1. **Przygotowanie**:
+   - Przejdź do zakładki "Plan" w palecie elementów
+   - Wybierz narzędzie "Rysuj ścianę"
+   - Kanwa przejdzie w tryb rysowania
+
+2. **Rysowanie ścian**:
+   - Kliknij i przeciągnij aby narysować ścianę
+   - Ściany automatycznie łączą się w linie proste
+   - Zakończ rysowanie wybierając narzędzie "Wybierz"
+
+3. **Dodawanie drzwi i okien**:
+   - Przeciągnij element "Drzwi" lub "Okno" z palety
+   - Umieść na ścianie w odpowiednim miejscu
+   - Dostosuj rozmiar w panelu właściwości
+
+4. **Definiowanie pomieszczeń**:
+   - Użyj narzędzia "Pomieszczenie" aby oznaczyć obszary
+   - W panelu właściwości zarządzaj pomieszczeniami
+   - Nadaj nazwy i wybierz typy pomieszczeń
+
+### Dodawanie urządzeń IoT
+
+1. Przejdź do zakładki "Urządzenia"
+2. Przeciągnij urządzenie na plan
+3. Umieść w odpowiednim pomieszczeniu
+4. W panelu właściwości:
+   - Przypisz encję Home Assistant
+   - Wybierz pomieszczenie
+   - Skonfiguruj akcje
+
+### Edycja elementów
 
 1. Wybierz element z palety po lewej stronie
 2. Przeciągnij go na kanwę
