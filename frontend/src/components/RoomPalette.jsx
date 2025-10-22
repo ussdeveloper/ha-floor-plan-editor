@@ -59,6 +59,25 @@ const roomTools = [
       strokeWidth: 1,
       fill: 'rgba(59, 130, 246, 0.1)'
     }
+  },
+  {
+    type: 'zone',
+    name: 'Strefa',
+    icon: Square3Stack3DIcon,
+    category: 'room',
+    defaultProps: {
+      width: 150,
+      height: 120,
+      color: 'rgba(251, 191, 36, 0.2)',
+      stroke: '#f59e0b',
+      strokeWidth: 2,
+      fill: 'rgba(251, 191, 36, 0.2)',
+      cssProperties: {
+        backgroundColor: 'rgba(251, 191, 36, 0.2)',
+        border: '2px solid #f59e0b',
+        borderRadius: '4px'
+      }
+    }
   }
 ]
 

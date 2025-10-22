@@ -72,7 +72,8 @@ const PropertiesPanel = ({ element }) => {
     }
   }
 
-  const isRoomElement = element?.elementType && ['wall', 'door', 'window', 'room'].includes(element.elementType)
+  const isRoomElement = element?.elementType && ['wall', 'door', 'window', 'room', 'zone'].includes(element.elementType)
+  const isZone = element?.elementType === 'zone'
 
   if (!element) {
     return (
@@ -311,6 +312,72 @@ const PropertiesPanel = ({ element }) => {
             </div>
           </div>
         </div>
+
+        {/* CSS Properties for zones */}
+        {isZone && (
+          <div>
+            <h3 className="text-sm font-medium text-gray-900 mb-3">Style CSS</h3>
+            
+            <div className="space-y-3">
+              <div>
+                <label className="form-label">Kolor tła (CSS)</label>
+                <input
+                  type="text"
+                  value={element.cssProperties?.backgroundColor || 'transparent'}
+                  onChange={(e) => {
+                    const cssProps = { ...element.cssProperties, backgroundColor: e.target.value }
+                    handlePropertyChange('cssProperties', cssProps)
+                    handlePropertyChange('fill', e.target.value)
+                  }}
+                  className="form-input"
+                  placeholder="rgba(251, 191, 36, 0.2)"
+                />
+              </div>
+
+              <div>
+                <label className="form-label">Ramka (CSS border)</label>
+                <input
+                  type="text"
+                  value={element.cssProperties?.border || '2px solid #f59e0b'}
+                  onChange={(e) => {
+                    const cssProps = { ...element.cssProperties, border: e.target.value }
+                    handlePropertyChange('cssProperties', cssProps)
+                  }}
+                  className="form-input"
+                  placeholder="2px solid #f59e0b"
+                />
+              </div>
+
+              <div>
+                <label className="form-label">Zaokrąglenie rogów (border-radius)</label>
+                <input
+                  type="text"
+                  value={element.cssProperties?.borderRadius || '4px'}
+                  onChange={(e) => {
+                    const cssProps = { ...element.cssProperties, borderRadius: e.target.value }
+                    handlePropertyChange('cssProperties', cssProps)
+                  }}
+                  className="form-input"
+                  placeholder="4px"
+                />
+              </div>
+
+              <div>
+                <label className="form-label">Dodatkowe CSS</label>
+                <textarea
+                  value={element.cssProperties?.custom || ''}
+                  onChange={(e) => {
+                    const cssProps = { ...element.cssProperties, custom: e.target.value }
+                    handlePropertyChange('cssProperties', cssProps)
+                  }}
+                  className="form-input"
+                  rows="3"
+                  placeholder="box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Home Assistant integration - only for device elements */}
         {!isRoomElement && (

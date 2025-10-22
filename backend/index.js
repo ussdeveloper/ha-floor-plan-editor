@@ -125,16 +125,26 @@ app.get('/api/floorplans', async (req, res) => {
 app.get('/api/floorplan/:name/export', async (req, res) => {
   try {
     const { name } = req.params;
+    const { format = 'ha-floorplan' } = req.query
     const configPath = path.join(__dirname, '../data', `${name}.yaml`);
     
     const yamlContent = await fs.readFile(configPath, 'utf8');
     const config = YAML.parse(yamlContent);
     
-    // Transform internal config to ha-floorplan format
-    const exportConfig = transformToHaFloorplan(config);
+    let exportConfig
+    let filename
+
+    // Transform based on requested format
+    if (format === 'lovelace') {
+      exportConfig = transformToLovelace(config)
+      filename = `${name}-lovelace.yaml`
+    } else {
+      exportConfig = transformToHaFloorplan(config)
+      filename = `${name}-floorplan.yaml`
+    }
     
     res.setHeader('Content-Type', 'application/x-yaml');
-    res.setHeader('Content-Disposition', `attachment; filename="${name}-floorplan.yaml"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(YAML.stringify(exportConfig));
   } catch (error) {
     console.error('Error exporting floorplan:', error);
@@ -207,6 +217,90 @@ function transformToHaFloorplan(config) {
       })) || []
     }
   };
+}
+
+// Transform internal config to Lovelace picture-elements format
+function transformToLovelace(config) {
+  const canvasWidth = 800
+  const canvasHeight = 600
+
+  const elements = []
+
+  // Add device elements
+  if (config.elements) {
+    config.elements.forEach(element => {
+      const style = {
+        left: `${(element.left / canvasWidth * 100).toFixed(2)}%`,
+        top: `${(element.top / canvasHeight * 100).toFixed(2)}%`,
+        transform: element.angle ? `rotate(${element.angle}deg)` : undefined
+      }
+
+      if (element.entityId) {
+        // Device with HA entity
+        elements.push({
+          type: 'state-icon',
+          entity: element.entityId,
+          style,
+          tap_action: {
+            action: element.clickAction || 'more-info'
+          }
+        })
+      } else {
+        // Static icon/shape
+        elements.push({
+          type: 'icon',
+          icon: getIconForType(element.type),
+          style: {
+            ...style,
+            color: element.color || '#000000'
+          }
+        })
+      }
+    })
+  }
+
+  // Add zone elements
+  if (config.roomElements) {
+    config.roomElements
+      .filter(el => el.type === 'zone')
+      .forEach(zone => {
+        const style = {
+          left: `${(zone.left / canvasWidth * 100).toFixed(2)}%`,
+          top: `${(zone.top / canvasHeight * 100).toFixed(2)}%`,
+          width: `${((zone.width * (zone.scaleX || 1)) / canvasWidth * 100).toFixed(2)}%`,
+          height: `${((zone.height * (zone.scaleY || 1)) / canvasHeight * 100).toFixed(2)}%`,
+          ...(zone.cssProperties || {})
+        }
+
+        elements.push({
+          type: 'custom:button-card',
+          name: zone.name || 'Zone',
+          show_name: false,
+          show_icon: false,
+          styles: {
+            card: [style]
+          }
+        })
+      })
+  }
+
+  return {
+    type: 'picture-elements',
+    image: config.backgroundImage || '/local/floorplan.png',
+    elements
+  }
+}
+
+// Helper to map element types to HA icons
+function getIconForType(type) {
+  const iconMap = {
+    light: 'mdi:lightbulb',
+    switch: 'mdi:power',
+    sensor: 'mdi:thermometer',
+    camera: 'mdi:cctv',
+    speaker: 'mdi:speaker'
+  }
+  return iconMap[type] || 'mdi:help-circle'
 }
 
 module.exports = app;

@@ -17,8 +17,8 @@ const api = {
   saveFloorplan: (name, config) => 
     axios.post(`${API_BASE}/floorplan/save`, { name, config }).then(res => res.data),
   
-  exportFloorplan: (name) => 
-    axios.get(`${API_BASE}/floorplan/${name}/export`, { responseType: 'blob' }).then(res => res.data),
+  exportFloorplan: (name, format = 'ha-floorplan') => 
+    axios.get(`${API_BASE}/floorplan/${name}/export?format=${format}`, { responseType: 'blob' }).then(res => res.data),
 }
 
 export default api

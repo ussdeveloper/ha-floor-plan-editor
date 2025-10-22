@@ -19,7 +19,8 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
     setCanvas,
     zoom,
     gridEnabled,
-    gridSize
+    gridSize,
+    snapToGrid
   } = useEditorStore()
 
   const [rooms, setRooms] = useState([])
@@ -53,6 +54,8 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
         height: 600,
         backgroundColor: '#ffffff',
         selection: true,
+        snapAngle: 15,
+        snapThreshold: 10
       })
 
       fabricCanvasRef.current = canvas
@@ -100,6 +103,17 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
           scaleX: obj.scaleX,
           scaleY: obj.scaleY,
           angle: obj.angle
+        })
+      }
+    })
+
+    // Snap to grid during movement
+    canvas.on('object:moving', (e) => {
+      const obj = e.target
+      if (snapToGrid && obj) {
+        obj.set({
+          left: Math.round(obj.left / gridSize) * gridSize,
+          top: Math.round(obj.top / gridSize) * gridSize
         })
       }
     })
@@ -213,6 +227,12 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
   const handleAddRoomElement = (elementType, x, y) => {
     if (!fabricCanvasRef.current) return
 
+    // Snap to grid if enabled
+    if (snapToGrid) {
+      x = Math.round(x / gridSize) * gridSize
+      y = Math.round(y / gridSize) * gridSize
+    }
+
     const element = {
       type: elementType.type,
       name: elementType.name,
@@ -291,6 +311,26 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
         })
         break
 
+      case 'zone':
+        fabricObject = new fabric.Rect({
+          width: element.width,
+          height: element.height,
+          fill: element.fill,
+          stroke: element.stroke,
+          strokeWidth: element.strokeWidth,
+          left: x,
+          top: y,
+          rx: 4,
+          ry: 4,
+          cornerStyle: 'circle',
+          cornerColor: '#f59e0b',
+          cornerSize: 10,
+          transparentCorners: false,
+          hasControls: true,
+          hasBorders: true
+        })
+        break
+
       default:
         fabricObject = new fabric.Rect({
           width: element.width,
@@ -315,6 +355,12 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
   const handleAddElement = (elementType, x, y) => {
     // Same as original Canvas component
     if (!fabricCanvasRef.current) return
+
+    // Snap to grid if enabled
+    if (snapToGrid) {
+      x = Math.round(x / gridSize) * gridSize
+      y = Math.round(y / gridSize) * gridSize
+    }
 
     const element = {
       type: elementType.type,

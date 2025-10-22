@@ -11,6 +11,7 @@ export const useEditorStore = create((set, get) => ({
   zoom: 100,
   gridEnabled: true,
   gridSize: 20,
+  snapToGrid: true,
   isDirty: false,
 
   // Actions
@@ -52,6 +53,57 @@ export const useEditorStore = create((set, get) => ({
   setGridEnabled: (enabled) => set({ gridEnabled: enabled }),
   
   setGridSize: (size) => set({ gridSize: size }),
+
+  setSnapToGrid: (enabled) => set({ snapToGrid: enabled }),
+
+  // Z-order management
+  bringToFront: (id) => set((state) => {
+    const canvas = state.canvas
+    if (!canvas) return state
+
+    const obj = canvas.getObjects().find(o => o.elementId === id)
+    if (obj) {
+      canvas.bringToFront(obj)
+      canvas.renderAll()
+    }
+    return { isDirty: true }
+  }),
+
+  sendToBack: (id) => set((state) => {
+    const canvas = state.canvas
+    if (!canvas) return state
+
+    const obj = canvas.getObjects().find(o => o.elementId === id)
+    if (obj) {
+      canvas.sendToBack(obj)
+      canvas.renderAll()
+    }
+    return { isDirty: true }
+  }),
+
+  bringForward: (id) => set((state) => {
+    const canvas = state.canvas
+    if (!canvas) return state
+
+    const obj = canvas.getObjects().find(o => o.elementId === id)
+    if (obj) {
+      canvas.bringForward(obj)
+      canvas.renderAll()
+    }
+    return { isDirty: true }
+  }),
+
+  sendBackward: (id) => set((state) => {
+    const canvas = state.canvas
+    if (!canvas) return state
+
+    const obj = canvas.getObjects().find(o => o.elementId === id)
+    if (obj) {
+      canvas.sendBackward(obj)
+      canvas.renderAll()
+    }
+    return { isDirty: true }
+  }),
 
   // Project management
   createNewProject: () => set({

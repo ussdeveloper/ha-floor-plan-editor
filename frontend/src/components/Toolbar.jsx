@@ -7,19 +7,32 @@ import {
   ArrowUturnRightIcon,
   MagnifyingGlassMinusIcon,
   MagnifyingGlassPlusIcon,
-  Square3Stack3DIcon
+  Square3Stack3DIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  ArrowUpOnSquareIcon,
+  ArrowDownOnSquareIcon,
+  ArrowDownTrayIcon
 } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 import { useEditorStore } from '../store/editorStore'
+import api from '../services/api'
 
 const Toolbar = () => {
   const navigate = useNavigate()
   const { 
     currentProject, 
+    selectedElement,
     zoom, 
     setZoom, 
     saveProject, 
-    isDirty 
+    isDirty,
+    snapToGrid,
+    setSnapToGrid,
+    bringToFront,
+    sendToBack,
+    bringForward,
+    sendBackward
   } = useEditorStore()
   
   const [saving, setSaving] = useState(false)
@@ -61,6 +74,29 @@ const Toolbar = () => {
     setZoom(100)
   }
 
+  const handleExport = async (format) => {
+    if (!currentProject?.name) {
+      toast.error('Najpierw zapisz projekt')
+      return
+    }
+
+    try {
+      const blob = await api.exportFloorplan(currentProject.name, format)
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${currentProject.name}-${format}.yaml`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      toast.success(`Eksport do ${format} zakończony`)
+    } catch (error) {
+      console.error('Export error:', error)
+      toast.error('Błąd podczas eksportu')
+    }
+  }
+
   return (
     <>
       <div className="bg-white border-b border-gray-200 px-4 py-3">
@@ -94,10 +130,82 @@ const Toolbar = () => {
                 <DocumentArrowDownIcon className="w-4 h-4 mr-1" />
                 {saving ? 'Zapisywanie...' : 'Zapisz'}
               </button>
+
+              <div className="relative group">
+                <button
+                  className="flex items-center px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md"
+                  title="Eksportuj"
+                >
+                  <ArrowDownTrayIcon className="w-4 h-4 mr-1" />
+                  Eksportuj
+                </button>
+                <div className="hidden group-hover:block absolute left-0 top-full mt-1 bg-white shadow-lg rounded-md border border-gray-200 z-50 min-w-[200px]">
+                  <button
+                    onClick={() => handleExport('lovelace')}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Lovelace Picture-Elements
+                  </button>
+                  <button
+                    onClick={() => handleExport('ha-floorplan')}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    HA Floorplan Card
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
           <div className="flex items-center space-x-4">
+            {/* Z-order controls */}
+            {selectedElement && (
+              <div className="flex items-center space-x-1 border-r border-gray-200 pr-4">
+                <button
+                  onClick={() => bringToFront(selectedElement.elementId)}
+                  className="p-1.5 text-gray-600 hover:text-gray-900 rounded"
+                  title="Na wierzch"
+                >
+                  <ArrowUpOnSquareIcon className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => bringForward(selectedElement.elementId)}
+                  className="p-1.5 text-gray-600 hover:text-gray-900 rounded"
+                  title="Do przodu"
+                >
+                  <ArrowUpIcon className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => sendBackward(selectedElement.elementId)}
+                  className="p-1.5 text-gray-600 hover:text-gray-900 rounded"
+                  title="Do tyłu"
+                >
+                  <ArrowDownIcon className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => sendToBack(selectedElement.elementId)}
+                  className="p-1.5 text-gray-600 hover:text-gray-900 rounded"
+                  title="Na spód"
+                >
+                  <ArrowDownOnSquareIcon className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Snap to grid */}
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="snap-to-grid"
+                checked={snapToGrid}
+                onChange={(e) => setSnapToGrid(e.target.checked)}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label htmlFor="snap-to-grid" className="text-sm text-gray-600">
+                Przyciągaj do siatki
+              </label>
+            </div>
+
             {/* Undo/Redo */}
             <div className="flex items-center space-x-1">
               <button
