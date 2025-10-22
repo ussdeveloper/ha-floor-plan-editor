@@ -1,26 +1,12 @@
-# HA Floor Plan Editor - Multi-Channel Releases
+# HA Floor Plan Editor - Wersjonowanie
 
-## Kanały aktualizacji
+## Jak działa wersjonowanie w Home Assistant
 
-Projekt używa trzech kanałów aktualizacji dla różnych grup użytkowników:
-
-### 1. **nightbuild** (Eksperymentalne)
-- **Aktualizacja**: Automatycznie przy każdym commit do `main`
-- **Dla kogo**: Deweloperzy i entuzjaści testujący najnowsze zmiany
-- **Stabilność**: Może zawierać niestabilny kod
-- **Wersja**: Auto-increment przy każdym build (patch)
-
-### 2. **development** (Testy)
-- **Aktualizacja**: Ręczne merge z `main` do `development` branch
-- **Dla kogo**: Early adopters testujący nowe funkcje
-- **Stabilność**: Zweryfikowane zmiany, ale jeszcze nie w pełni przetestowane
-- **Wersja**: Minor/patch increment
-
-### 3. **release** (Stabilny)
-- **Aktualizacja**: Przy tagowaniu release (`v*.*.*`)
-- **Dla kogo**: Użytkownicy produkcyjni
-- **Stabilność**: Pełne testy, stabilny kod
-- **Wersja**: Semantic versioning (major.minor.patch)
+Home Assistant addons używają **prostego systemu wersji**:
+- Każde repozytorium = **jeden addon**
+- Wersja z `addon/config.json` jest wyświetlana użytkownikom
+- Home Assistant wykrywa aktualizacje gdy wersja się zwiększy
+- **Nie ma** wielu kanałów w jednym repozytorium (to jest tylko dla oficjalnych HA addons)
 
 ## Workflow deweloperski
 
@@ -41,45 +27,9 @@ git push origin main
 ```
 
 **Rezultat**: GitHub Actions automatycznie:
-- Buduje addon dla wszystkich architektur
-- Publikuje do kanału **nightbuild**
-- Użytkownicy nightbuild widzą aktualizację w Home Assistant
-
-### Aktualizacja development
-
-```bash
-# Gdy zmiany są zweryfikowane w nightbuild:
-git checkout development
-git merge main
-git push origin development
-```
-
-**Rezultat**: 
-- Build publikowany do kanału **development**
-- Użytkownicy development widzą aktualizację
-
-### Release (stabilny)
-
-```bash
-# Gdy development jest stabilny:
-git checkout main
-git tag v1.1.0
-git push origin v1.1.0
-```
-
-**Rezultat**: 
-- Build publikowany do kanału **release**
-- Użytkownicy release widzą aktualizację
-
-## Home Assistant - detekcja aktualizacji
-
-Home Assistant śledzi wersję z `addon/config.json` dla każdego kanału osobno:
-
-- Użytkownik na kanale **nightbuild** widzi aktualizację gdy wersja w nightbuild > zainstalowana wersja
-- Użytkownik na kanale **development** widzi aktualizację gdy wersja w development > zainstalowana wersja
-- Użytkownik na kanale **release** widzi aktualizację gdy wersja w release > zainstalowana wersja
-
-**WAŻNE**: Zawsze zwiększaj wersję w `addon/config.json` przy każdym commit, inaczej HA nie wykryje aktualizacji!
+- Buduje addon dla wszystkich architektur (armhf, armv7, aarch64, amd64, i386)
+- Publikuje do repozytorium
+- Użytkownicy widzą aktualizację w Home Assistant (po 2-3 minutach)
 
 ## Semantic Versioning
 
@@ -99,15 +49,20 @@ Format: `MAJOR.MINOR.PATCH` (np. `1.2.3`)
 
 ## GitHub Actions Workflow
 
-`.github/workflows/build.yml` automatycznie:
+`.github/workflows/build.yml` automatycznie buduje addon przy każdym push do `main`:
 
-1. Wykrywa branch/tag
-2. Określa kanał:
-   - `main` branch → **nightbuild**
-   - `development` branch → **development**
-   - tag `v*.*.*` → **release**
-3. Buduje addon dla wszystkich architektur (armhf, armv7, aarch64, amd64, i386)
-4. Publikuje do odpowiedniego kanału
+1. Wykrywa commit do main branch
+2. Buduje addon dla wszystkich architektur (armhf, armv7, aarch64, amd64, i386)
+3. Publikuje do repozytorium
+4. Użytkownicy widzą aktualizację w Home Assistant
+
+## Home Assistant - detekcja aktualizacji
+
+Home Assistant wykrywa aktualizacje porównując:
+- Wersję zainstalowanego addonu
+- Z wersją w `addon/config.json` w GitHub repo
+
+**WAŻNE**: Zawsze zwiększaj wersję w `addon/config.json` przy każdym commit, inaczej HA nie wykryje aktualizacji!
 
 ## Testowanie lokalnie
 
