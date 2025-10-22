@@ -35,6 +35,7 @@ HA Floor Plan Editor to addon dla Home Assistant, który umożliwia łatwe tworz
 ### Eksport
 - **Lovelace Picture-Elements**: Eksport do natywnego dashboardu HA z zachowanymi pozycjami
 - **HA Floorplan Card**: Kompatybilność z custom:floorplan-card
+- **Dodaj do Dashboard**: Bezpośrednie dodawanie karty do Lovelace z poziomu edytora (1-klik)
 - **Dokładne pozycje**: Wszystkie współrzędne przeliczane procentowo
 
 ### Integracja
@@ -86,11 +87,17 @@ HA Floor Plan Editor to addon dla Home Assistant, który umożliwia łatwe tworz
 
 ### Eksport
 1. **Zapisz projekt** (przycisk "Zapisz")
-2. **Kliknij "Eksportuj"** w toolbarze
-3. **Wybierz format**:
-   - **Lovelace Picture-Elements** - dla natywnego dashboardu HA
-   - **HA Floorplan Card** - dla custom:floorplan-card
-4. **Pobierz YAML** i dodaj do swojej konfiguracji Lovelace
+2. **Opcja 1 - Dodaj bezpośrednio do Dashboard**:
+   - Kliknij **"Dodaj do Dashboard"** (zielony przycisk)
+   - Wybierz dashboard i widok (view index)
+   - Wybierz format karty
+   - Kliknij "Dodaj kartę" → karta pojawi się natychmiast w Lovelace!
+3. **Opcja 2 - Pobierz YAML**:
+   - Kliknij **"Eksportuj"** w toolbarze
+   - Wybierz format:
+     - **Lovelace Picture-Elements** - dla natywnego dashboardu HA
+     - **HA Floorplan Card** - dla custom:floorplan-card
+   - Pobierz YAML i dodaj ręcznie do konfiguracji Lovelace
 
 ## Rozwój
 
