@@ -37,7 +37,12 @@ const Toolbar = () => {
   
   const [saving, setSaving] = useState(false)
   const [showSaveDialog, setShowSaveDialog] = useState(false)
+  const [showAddToDashboardDialog, setShowAddToDashboardDialog] = useState(false)
   const [projectName, setProjectName] = useState('')
+  const [dashboards, setDashboards] = useState([])
+  const [selectedDashboard, setSelectedDashboard] = useState('lovelace')
+  const [selectedView, setSelectedView] = useState(0)
+  const [cardFormat, setCardFormat] = useState('lovelace')
 
   const handleSave = async () => {
     if (!currentProject?.name && !projectName) {
@@ -94,6 +99,40 @@ const Toolbar = () => {
     } catch (error) {
       console.error('Export error:', error)
       toast.error('Błąd podczas eksportu')
+    }
+  }
+
+  const handleAddToDashboard = async () => {
+    if (!currentProject?.name) {
+      toast.error('Najpierw zapisz projekt')
+      return
+    }
+
+    // Load dashboards and show dialog
+    try {
+      const dashboardList = await api.getDashboards()
+      setDashboards(dashboardList)
+      setShowAddToDashboardDialog(true)
+    } catch (error) {
+      console.error('Error loading dashboards:', error)
+      // Show dialog anyway with default
+      setDashboards([{ path: 'lovelace', title: 'Default Dashboard' }])
+      setShowAddToDashboardDialog(true)
+    }
+  }
+
+  const confirmAddToDashboard = async () => {
+    try {
+      await api.addToDashboard(currentProject.name, {
+        dashboardPath: selectedDashboard,
+        viewIndex: parseInt(selectedView),
+        format: cardFormat
+      })
+      toast.success('Karta dodana do dashboardu!')
+      setShowAddToDashboardDialog(false)
+    } catch (error) {
+      console.error('Error adding to dashboard:', error)
+      toast.error(error.response?.data?.error || 'Błąd podczas dodawania karty')
     }
   }
 
@@ -154,6 +193,15 @@ const Toolbar = () => {
                   </button>
                 </div>
               </div>
+
+              <button
+                onClick={handleAddToDashboard}
+                className="flex items-center px-3 py-1.5 text-sm bg-green-600 text-white hover:bg-green-700 rounded-md"
+                title="Dodaj do dashboardu"
+              >
+                <Square3Stack3DIcon className="w-4 h-4 mr-1" />
+                Dodaj do Dashboard
+              </button>
             </div>
           </div>
 
@@ -289,6 +337,76 @@ const Toolbar = () => {
                 className="btn-primary"
               >
                 {saving ? 'Zapisywanie...' : 'Zapisz'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add to Dashboard dialog */}
+      {showAddToDashboardDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-[500px]">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              Dodaj kartę do Lovelace Dashboard
+            </h3>
+            
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="form-label">Dashboard</label>
+                <select
+                  value={selectedDashboard}
+                  onChange={(e) => setSelectedDashboard(e.target.value)}
+                  className="form-input"
+                >
+                  {dashboards.map((dashboard) => (
+                    <option key={dashboard.path} value={dashboard.path}>
+                      {dashboard.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="form-label">Widok (View Index)</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={selectedView}
+                  onChange={(e) => setSelectedView(e.target.value)}
+                  className="form-input"
+                  placeholder="0"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Indeks widoku (0 = pierwszy widok, 1 = drugi widok, itd.)
+                </p>
+              </div>
+
+              <div>
+                <label className="form-label">Format karty</label>
+                <select
+                  value={cardFormat}
+                  onChange={(e) => setCardFormat(e.target.value)}
+                  className="form-input"
+                >
+                  <option value="lovelace">Lovelace Picture-Elements</option>
+                  <option value="ha-floorplan">HA Floorplan Card</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="flex space-x-3 justify-end">
+              <button
+                onClick={() => setShowAddToDashboardDialog(false)}
+                className="btn-secondary"
+              >
+                Anuluj
+              </button>
+              <button
+                onClick={confirmAddToDashboard}
+                className="btn-primary"
+              >
+                Dodaj kartę
               </button>
             </div>
           </div>

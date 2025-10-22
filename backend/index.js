@@ -6,9 +6,14 @@ const path = require('path');
 const fs = require('fs').promises;
 const WebSocket = require('ws');
 const YAML = require('yaml');
+const axios = require('axios');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Home Assistant configuration
+const HA_URL = process.env.SUPERVISOR_URL || 'http://supervisor/core';
+const HA_TOKEN = process.env.SUPERVISOR_TOKEN || process.env.HA_TOKEN;
 
 // Middleware
 app.use(helmet({
@@ -149,6 +154,133 @@ app.get('/api/floorplan/:name/export', async (req, res) => {
   } catch (error) {
     console.error('Error exporting floorplan:', error);
     res.status(500).json({ error: 'Failed to export floorplan' });
+  }
+});
+
+// Add card directly to Lovelace dashboard
+app.post('/api/floorplan/:name/add-to-dashboard', async (req, res) => {
+  try {
+    const { name } = req.params;
+    const { dashboardPath = 'lovelace', viewIndex = 0, format = 'lovelace' } = req.body;
+    
+    if (!HA_TOKEN) {
+      return res.status(500).json({ 
+        error: 'Home Assistant token not available',
+        details: 'SUPERVISOR_TOKEN or HA_TOKEN environment variable not set'
+      });
+    }
+
+    // Load floor plan config
+    const configPath = path.join(__dirname, '../data', `${name}.yaml`);
+    const yamlContent = await fs.readFile(configPath, 'utf8');
+    const config = YAML.parse(yamlContent);
+
+    // Transform to card config
+    const cardConfig = format === 'lovelace' 
+      ? transformToLovelace(config)
+      : transformToHaFloorplan(config);
+
+    // Get current Lovelace config
+    const lovelaceUrl = `${HA_URL}/api/lovelace/${dashboardPath}`;
+    const headers = {
+      'Authorization': `Bearer ${HA_TOKEN}`,
+      'Content-Type': 'application/json'
+    };
+
+    let lovelaceConfig;
+    try {
+      const response = await axios.get(lovelaceUrl, { headers });
+      lovelaceConfig = response.data;
+    } catch (error) {
+      if (error.response?.status === 404) {
+        // Dashboard doesn't exist, create minimal config
+        lovelaceConfig = {
+          views: [{
+            title: 'Home',
+            path: 'home',
+            cards: []
+          }]
+        };
+      } else {
+        throw error;
+      }
+    }
+
+    // Ensure views array exists
+    if (!lovelaceConfig.views || !Array.isArray(lovelaceConfig.views)) {
+      lovelaceConfig.views = [{
+        title: 'Home',
+        path: 'home',
+        cards: []
+      }];
+    }
+
+    // Ensure target view exists
+    if (!lovelaceConfig.views[viewIndex]) {
+      lovelaceConfig.views[viewIndex] = {
+        title: `View ${viewIndex}`,
+        path: `view-${viewIndex}`,
+        cards: []
+      };
+    }
+
+    // Ensure cards array exists
+    if (!lovelaceConfig.views[viewIndex].cards) {
+      lovelaceConfig.views[viewIndex].cards = [];
+    }
+
+    // Add card to the view
+    lovelaceConfig.views[viewIndex].cards.push(cardConfig);
+
+    // Update Lovelace config
+    await axios.post(lovelaceUrl, lovelaceConfig, { headers });
+
+    res.json({ 
+      success: true, 
+      message: 'Floor plan card added to dashboard',
+      dashboard: dashboardPath,
+      view: viewIndex,
+      cardIndex: lovelaceConfig.views[viewIndex].cards.length - 1
+    });
+
+  } catch (error) {
+    console.error('Error adding card to dashboard:', error);
+    res.status(500).json({ 
+      error: 'Failed to add card to dashboard',
+      details: error.message,
+      haError: error.response?.data
+    });
+  }
+});
+
+// Get available Lovelace dashboards
+app.get('/api/lovelace/dashboards', async (req, res) => {
+  try {
+    if (!HA_TOKEN) {
+      return res.json([{ path: 'lovelace', title: 'Default Dashboard' }]);
+    }
+
+    const headers = {
+      'Authorization': `Bearer ${HA_TOKEN}`,
+      'Content-Type': 'application/json'
+    };
+
+    // Try to get dashboards list
+    try {
+      const response = await axios.get(`${HA_URL}/api/lovelace/resources`, { headers });
+      // Get all available dashboards
+      const dashboards = [
+        { path: 'lovelace', title: 'Default Dashboard' }
+      ];
+      
+      res.json(dashboards);
+    } catch (error) {
+      // Fallback to default
+      res.json([{ path: 'lovelace', title: 'Default Dashboard' }]);
+    }
+  } catch (error) {
+    console.error('Error fetching dashboards:', error);
+    res.json([{ path: 'lovelace', title: 'Default Dashboard' }]);
   }
 });
 

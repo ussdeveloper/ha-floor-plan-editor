@@ -19,6 +19,12 @@ const api = {
   
   exportFloorplan: (name, format = 'ha-floorplan') => 
     axios.get(`${API_BASE}/floorplan/${name}/export?format=${format}`, { responseType: 'blob' }).then(res => res.data),
+
+  addToDashboard: (name, options = {}) =>
+    axios.post(`${API_BASE}/floorplan/${name}/add-to-dashboard`, options).then(res => res.data),
+
+  getDashboards: () =>
+    axios.get(`${API_BASE}/lovelace/dashboards`).then(res => res.data),
 }
 
 export default api
