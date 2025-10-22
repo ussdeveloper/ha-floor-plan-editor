@@ -13,14 +13,35 @@ HA Floor Plan Editor to addon dla Home Assistant, który umożliwia łatwe tworz
 
 ## Funkcje
 
-- **Edytor planu pomieszczeń**: Proste narzędzia do rysowania ścian, drzwi i okien
-- **Graficzny edytor**: Intuicyjny interfejs przeciągnij i upuść
-- **Definicja pomieszczeń**: Tworzenie i nazywanie pomieszczeń
-- **Integracja z HA**: Automatyczne wykrywanie urządzeń z Home Assistant
-- **Podgląd na żywo**: Podgląd planu w czasie rzeczywistym
-- **Eksport konfiguracji**: Generowanie YAML i CSS dla ha-floorplan
-- **Szablony**: Gotowe szablony planów pięter
-- **Responsywność**: Obsługa różnych rozmiarów ekranów
+### Edytor planu pomieszczeń
+- **Rysowanie ścian**: Tryb rysowania z podglądem na żywo
+- **Drzwi i okna**: Przeciągnij i upuść elementy architektoniczne
+- **Strefy**: Definiowanie obszarów z niestandardowym CSS
+- **Pomieszczenia**: Nazywanie i organizowanie przestrzeni
+
+### Urządzenia Home Assistant
+- **Światła**: Ikony świateł z mapowaniem encji
+- **Przełączniki**: Kontrola przełączników
+- **Czujniki**: Ikona + etykieta dla czujników
+- **Kamery**: Ikony kamer na planie
+
+### Edycja i układ
+- **Snap to grid**: Przyciąganie do siatki z regulowaną rozdzielczością
+- **Z-order controls**: Bring to front/back, forward/backward dla każdego elementu
+- **Właściwości CSS**: Pełna kontrola stylów dla stref (background, border, opacity, etc.)
+- **Przeciągnij i upuść**: Intuicyjne pozycjonowanie elementów
+- **Zoom**: 25%-400% z płynną skalą
+
+### Eksport
+- **Lovelace Picture-Elements**: Eksport do natywnego dashboardu HA z zachowanymi pozycjami
+- **HA Floorplan Card**: Kompatybilność z custom:floorplan-card
+- **Dokładne pozycje**: Wszystkie współrzędne przeliczane procentowo
+
+### Integracja
+- **Automatyczne wykrywanie encji**: Pobieranie z Home Assistant API
+- **WebSocket**: Aktualizacje w czasie rzeczywistym
+- **Addon z UI**: Eksponowany na HTTP (domyślnie port 3000)
+- **Ingress support**: Bezpieczny dostęp przez Home Assistant UI
 
 ## Instalacja
 
@@ -39,12 +60,37 @@ HA Floor Plan Editor to addon dla Home Assistant, który umożliwia łatwe tworz
 
 ## Użytkowanie
 
-1. Zainstaluj i uruchom addon
-2. Otwórz interfejs edytora w przeglądarce
+### Podstawowe kroki
+1. Zainstaluj i uruchom addon w Home Assistant
+2. Otwórz interfejs edytora (via Ingress lub http://[HOST]:3000)
 3. Wybierz szablon lub zacznij od pustego planu
-4. Dodaj elementy i zmapuj urządzenia
-5. Skonfiguruj stany i akcje
-6. Eksportuj konfigurację do ha-floorplan
+
+### Rysowanie planu
+1. **Wybierz zakładkę "Plan"** w palecie elementów (lewa strona)
+2. **Kliknij "Rysuj ścianę"** aby aktywować tryb rysowania
+3. **Kliknij i przeciągnij** na canvasie aby narysować ścianę
+4. **Przeciągnij drzwi/okna** z palety na plan
+5. **Dodaj strefy** dla definiowania obszarów
+
+### Dodawanie urządzeń
+1. **Przejdź do zakładki "Urządzenia"**
+2. **Przeciągnij ikony** (światła, przełączniki, czujniki, kamery) na canvas
+3. **Wybierz element** i w panelu właściwości (prawa strona) przypisz encję HA
+4. **Skonfiguruj akcje** (toggle, more-info, etc.)
+
+### Edycja
+- **Snap to grid**: Zaznacz checkbox "Przyciągaj do siatki" w toolbarze
+- **Z-order**: Wybierz element → użyj przycisków strzałek w toolbarze (na wierzch/na spód)
+- **CSS dla stref**: Wybierz strefę → sekcja "Style CSS" w właściwościach
+- **Zoom**: Użyj przycisków +/- lub kliknij wartość zoom aby zresetować
+
+### Eksport
+1. **Zapisz projekt** (przycisk "Zapisz")
+2. **Kliknij "Eksportuj"** w toolbarze
+3. **Wybierz format**:
+   - **Lovelace Picture-Elements** - dla natywnego dashboardu HA
+   - **HA Floorplan Card** - dla custom:floorplan-card
+4. **Pobierz YAML** i dodaj do swojej konfiguracji Lovelace
 
 ## Rozwój
 
