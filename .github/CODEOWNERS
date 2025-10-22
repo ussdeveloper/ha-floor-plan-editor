@@ -1,0 +1,22 @@
+# Code owners for ha-floor-plan-editor
+# These owners will be requested for review when someone opens a pull request
+
+# Default owners for everything
+* @ussdeveloper
+
+# GitHub Actions workflows
+/.github/workflows/ @ussdeveloper
+
+# Addon configuration
+/addon/config.json @ussdeveloper
+
+# Core backend
+/backend/ @ussdeveloper
+
+# Core frontend
+/frontend/src/components/ @ussdeveloper
+/frontend/src/store/ @ussdeveloper
+
+# Documentation
+/docs/ @ussdeveloper
+*.md @ussdeveloper

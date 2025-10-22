@@ -1,0 +1,24 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# GitHub linguist
+*.md linguist-detectable
+*.js linguist-detectable
+*.jsx linguist-detectable
+
+# Archives
+*.zip binary
+*.tar binary
+*.gz binary
+
+# Docker
+Dockerfile text eol=lf
+*.sh text eol=lf
+
+# JSON
+*.json text
+
+# Config files
+config.yaml text
+config.json text
+repository.json text
