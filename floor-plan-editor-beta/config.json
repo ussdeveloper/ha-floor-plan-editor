@@ -1,0 +1,42 @@
+{
+  "name": "HA Floor Plan Editor (Beta)",
+  "version": "1.1.0-beta1",
+  "slug": "floor-plan-editor-beta",
+  "description": "Graficzny edytor planów pięter dla Home Assistant (Beta - nowe funkcje)",
+  "url": "https://github.com/ussdeveloper/ha-floor-plan-editor",
+  "startup": "application",
+  "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
+  "init": false,
+  "map": [
+    "config:rw",
+    "share:rw"
+  ],
+  "options": {
+    "port": 3000,
+    "ssl": false,
+    "certfile": "fullchain.pem",
+    "keyfile": "privkey.pem"
+  },
+  "schema": {
+    "port": "port",
+    "ssl": "bool",
+    "certfile": "str",
+    "keyfile": "str"
+  },
+  "ports": {
+    "3000/tcp": 3000
+  },
+  "ports_description": {
+    "3000/tcp": "Web interface"
+  },
+  "webui": "http://[HOST]:[PORT:3000]",
+  "ingress": true,
+  "ingress_port": 0,
+  "panel_icon": "mdi:floor-plan",
+  "hassio_api": true,
+  "hassio_role": "default",
+  "homeassistant_api": true,
+  "host_network": false,
+  "advanced": false,
+  "stage": "experimental"
+}

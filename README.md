@@ -52,13 +52,24 @@ HA Floor Plan Editor to addon dla Home Assistant, który umożliwia łatwe tworz
 2. Kliknij menu (⋮) w prawym górnym rogu → **Repositories**
 3. Dodaj URL: `https://github.com/ussdeveloper/ha-floor-plan-editor`
 4. Kliknij **Add** i poczekaj na odświeżenie listy
-5. Addon pojawi się w sekcji "Community Add-ons"
-6. Kliknij na addon → **Install**
+
+### Wybór wersji addon
+
+Po dodaniu repozytorium zobaczysz **3 osobne addony**:
+
+- **HA Floor Plan Editor** - Stabilna wersja produkcyjna (1.0.x)
+- **HA Floor Plan Editor (Beta)** - Nowe funkcje w testach (1.1.x-beta)
+- **HA Floor Plan Editor (Dev)** - Eksperymentalne buildy (dev-YYYYMMDD)
+
+Wybierz addon odpowiedni do swoich potrzeb:
+1. Znajdź wybrany addon na liście
+2. Kliknij na niego → **Install**
+3. Po instalacji kliknij **Start**
 
 ### Aktualizacje
 
-Addon automatycznie wykrywa nowe wersje. Aby zaktualizować:
-1. Settings → Add-ons → HA Floor Plan Editor
+Każdy addon wykrywa aktualizacje niezależnie. Aby zaktualizować:
+1. Settings → Add-ons → [Twój addon]
 2. Kliknij **Update** gdy pojawi się nowa wersja
 
 ℹ️ **Uwaga**: Aktualizacje pojawiają się 2-3 minuty po push do GitHub (czas buildu)

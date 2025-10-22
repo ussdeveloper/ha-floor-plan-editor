@@ -1,4 +1,4 @@
-name: Build Add-on
+name: Build Add-ons
 
 on:
   push:
@@ -7,23 +7,44 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-stable:
     runs-on: ubuntu-latest
-    name: Build addon
+    name: Build stable addon
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get addon information
-        id: info
-        uses: home-assistant/actions/helpers/info@master
-        with:
-          path: "./addon"
-
-      - name: Build addon
+      - name: Build stable addon
         uses: home-assistant/builder@master
         with:
           args: |
             --all \
-            --target addon \
-            --addon
+            --target floor-plan-editor
+
+  build-beta:
+    runs-on: ubuntu-latest
+    name: Build beta addon
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build beta addon
+        uses: home-assistant/builder@master
+        with:
+          args: |
+            --all \
+            --target floor-plan-editor-beta
+
+  build-dev:
+    runs-on: ubuntu-latest
+    name: Build dev addon
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build dev addon
+        uses: home-assistant/builder@master
+        with:
+          args: |
+            --all \
+            --target floor-plan-editor-dev

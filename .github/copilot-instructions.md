@@ -4,10 +4,17 @@
 
 This is a **Home Assistant addon** with a React frontend + Express backend that creates interactive floor plans for smart home dashboards.
 
+**Multi-addon structure (like ESPHome):**
+- `floor-plan-editor/` - **Stable** releases (version 1.0.x, stage: stable)
+- `floor-plan-editor-beta/` - **Beta** releases (version 1.1.x-beta, new features)
+- `floor-plan-editor-dev/` - **Development** builds (version dev-YYYYMMDD, experimental)
+
+Each folder is a **separate addon** in Home Assistant Store from single repository!
+
 **Key components:**
 - `backend/index.js` - Express API server with WebSocket support, HA API integration via Supervisor
 - `frontend/` - Vite + React SPA using Fabric.js for canvas drawing
-- `addon/` - Home Assistant addon metadata and Docker config
+- `floor-plan-editor*/` - Three addon variants (stable/beta/dev) with different `config.json`
 - State management: Zustand (`frontend/src/store/editorStore.js`)
 
 **Data flow:**
@@ -33,25 +40,32 @@ cd frontend && npm install && npm run dev
 - For local testing outside HA, set `HA_TOKEN` and `HA_URL` manually
 
 ### Version Management & Releases
-**CRITICAL**: Each code change must update version and trigger builds for multi-channel releases:
+**CRITICAL**: Multi-addon structure means updating versions in multiple places:
 
-1. **Update `addon/config.json`** - increment `"version"` (semantic versioning)
-2. **Commit triggers GitHub Actions** which builds for 3 channels:
-   - `nightbuild` - auto-updates on every commit (experimental users)
-   - `development` - manual merge from main (active testers)
-   - `release` - stable releases only
+**Workflow for each channel:**
 
-**Workflow:**
-```bash
-# After any feature/fix:
-1. Edit addon/config.json → bump version
-2. git commit -m "feat: description" 
-3. Push → nightbuild auto-updates
-4. Merge to development branch → development channel updates
-5. Tag release → release channel updates
-```
+1. **Stable (floor-plan-editor/)** - production releases
+   - Update `floor-plan-editor/config.json` → bump version (1.0.1 → 1.0.2)
+   - Commit: `git commit -m "release: v1.0.2"`
+   - Push → GitHub Actions builds stable addon
+   
+2. **Beta (floor-plan-editor-beta/)** - new features testing
+   - Update `floor-plan-editor-beta/config.json` → bump version (1.1.0-beta1 → 1.1.0-beta2)
+   - Commit: `git commit -m "beta: v1.1.0-beta2 - new feature"`
+   - Push → GitHub Actions builds beta addon
+   
+3. **Dev (floor-plan-editor-dev/)** - experimental/daily builds
+   - Update `floor-plan-editor-dev/config.json` → version format: `dev-YYYYMMDD`
+   - Auto-updates on every commit to main
+   - Commit: `git commit -m "dev: experimental feature"`
+   - Push → GitHub Actions builds dev addon
 
-Home Assistant tracks versions per-channel; users see update notifications when version increments.
+**Important:**
+- Each addon has **independent versioning**
+- Users see 3 separate addons in HA Store from ONE repository
+- Stable upgrades: 1.0.x → 1.0.y (bugfixes only)
+- Beta upgrades: 1.1.x-betaN (new features before stable)
+- Dev upgrades: dev-YYYYMMDD (bleeding edge, daily)
 
 ## Project-Specific Patterns
 
@@ -95,7 +109,9 @@ axios.post(`${HA_URL}/api/lovelace/${dashboardPath}`, lovelaceConfig, {
 - `frontend/src/components/Toolbar.jsx` - z-order controls, export dropdown, "Add to Dashboard" dialog
 - `frontend/src/components/PropertiesPanel.jsx` - CSS editor for zones (distinct from device properties)
 - `backend/index.js` lines 130-250 - Lovelace integration endpoints
-- `addon/config.json` - **VERSION HERE** controls HA update notifications
+- `floor-plan-editor/config.json` - **STABLE VERSION HERE** controls HA update notifications
+- `floor-plan-editor-beta/config.json` - **BETA VERSION HERE** 
+- `floor-plan-editor-dev/config.json` - **DEV VERSION HERE** (format: dev-YYYYMMDD)
 
 ## Common Tasks
 
@@ -114,11 +130,48 @@ axios.post(`${HA_URL}/api/lovelace/${dashboardPath}`, lovelaceConfig, {
 - Use `fabricObject.set({ prop: value })` then `canvas.renderAll()`
 - Store changes via `updateElement(id, updates)` from Zustand
 
+## Multi-Addon Repository Structure
+
+Home Assistant **automatically detects** all folders with `config.json` as separate addons:
+
+```
+ha-floor-plan-editor/
+├── floor-plan-editor/          ← Stable addon (1.0.x)
+│   ├── config.json
+│   ├── Dockerfile
+│   └── run.sh
+├── floor-plan-editor-beta/     ← Beta addon (1.1.x-beta)
+│   ├── config.json
+│   ├── Dockerfile
+│   └── run.sh
+├── floor-plan-editor-dev/      ← Dev addon (dev-YYYYMMDD)
+│   ├── config.json
+│   ├── Dockerfile
+│   └── run.sh
+├── backend/                    ← Shared codebase
+├── frontend/                   ← Shared codebase
+├── repository.json
+└── .github/workflows/build.yml ← Builds all 3 addons
+```
+
+**GitHub Actions** builds **3 separate jobs** (build-stable, build-beta, build-dev) targeting each folder.
+
+Users in HA see:
+- "HA Floor Plan Editor" (stable)
+- "HA Floor Plan Editor (Beta)" (beta features)
+- "HA Floor Plan Editor (Dev)" (experimental)
+
+Each can be installed independently!
+
 ## Git Branching Strategy
 
 - `main` → production-ready code
-- `development` → active testing (updates HA development channel)
-- `nightbuild` → auto-syncs with main on every push (bleeding edge)
-- Tag `vX.Y.Z` → triggers release channel build
+- `development` → active testing (optional for pre-release testing)
+- Addon versions controlled in each `floor-plan-editor*/config.json`
 
-**Every commit must bump `addon/config.json` version** for HA to detect updates.
+**Every commit must bump version in appropriate addon config.json** for HA to detect updates.
+
+**Release process:**
+1. Feature development → update dev addon version → push
+2. When stable → update beta addon version → push
+3. When fully tested → update stable addon version → push
