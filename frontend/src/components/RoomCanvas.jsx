@@ -325,13 +325,41 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
     }
 
     let fabricObject
-    
+
     switch (elementType.type) {
+      case 'sensor': {
+        const circle = new fabric.Circle({
+          radius: element.width / 2,
+          fill: element.color,
+          left: x,
+          top: y - 8,
+          originX: 'center',
+          originY: 'center',
+          selectable: true
+        })
+
+        const label = new fabric.Text(element.name || 'Czujnik', {
+          left: x,
+          top: y + (element.width / 2) - 2,
+          originX: 'center',
+          originY: 'center',
+          fontSize: 12,
+          fill: '#374151',
+          selectable: false
+        })
+
+        fabricObject = new fabric.Group([circle, label], {
+          left: x,
+          top: y,
+          originX: 'center',
+          originY: 'center'
+        })
+        break
+      }
       case 'light':
       case 'switch':
       case 'camera':
       case 'speaker':
-      case 'sensor':
         fabricObject = new fabric.Circle({
           radius: element.width / 2,
           fill: element.color,
