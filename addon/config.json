@@ -1,6 +1,6 @@
 {
   "name": "HA Floor Plan Editor",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "slug": "ha-floor-plan-editor",
   "description": "Graficzny edytor planów pięter dla Home Assistant",
   "url": "https://github.com/ussdeveloper/ha-floor-plan-editor",
