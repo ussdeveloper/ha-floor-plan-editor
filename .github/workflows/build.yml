@@ -1,0 +1,41 @@
+name: Build and Release Multi-Channel
+
+on:
+  push:
+    branches:
+      - main
+      - development
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build addon
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get information
+        id: info
+        uses: home-assistant/actions/helpers/info@master
+
+      - name: Determine channel
+        id: channel
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "channel=release" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == refs/heads/development ]]; then
+            echo "channel=development" >> $GITHUB_OUTPUT
+          else
+            echo "channel=nightbuild" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build addon
+        uses: home-assistant/builder@master
+        with:
+          args: |
+            --all \
+            --target addon \
+            --channel ${{ steps.channel.outputs.channel }}
