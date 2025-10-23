@@ -187,30 +187,52 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
     if (!drawingRef.current.tempLine) return
     
     const pointer = canvas.getPointer(e.e)
-    drawingRef.current.tempLine.set({
-      x2: pointer.x,
-      y2: pointer.y
-    })
+    const startPoint = drawingRef.current.startPoint
+    
+    // Calculate angle and snap to 45° increments
+    let dx = pointer.x - startPoint.x
+    let dy = pointer.y - startPoint.y
+    const distance = Math.sqrt(dx * dx + dy * dy)
+    
+    if (distance > 0) {
+      let angle = Math.atan2(dy, dx) * 180 / Math.PI
+      // Snap to nearest 45°
+      const snapAngle = Math.round(angle / 45) * 45
+      const snapRad = snapAngle * Math.PI / 180
+      
+      // Calculate snapped endpoint
+      const snappedX = startPoint.x + distance * Math.cos(snapRad)
+      const snappedY = startPoint.y + distance * Math.sin(snapRad)
+      
+      drawingRef.current.tempLine.set({
+        x2: snappedX,
+        y2: snappedY
+      })
+    }
     canvas.renderAll()
   }
 
   const handleDrawingEnd = (e, canvas) => {
     if (!drawingRef.current.isDrawing || !drawingRef.current.tempLine) return
 
-    const pointer = canvas.getPointer(e.e)
+    const tempLine = drawingRef.current.tempLine
     const startPoint = drawingRef.current.startPoint
+    
+    // Use snapped coordinates from temp line
+    const endX = tempLine.x2
+    const endY = tempLine.y2
 
     // Remove temporary line
-    canvas.remove(drawingRef.current.tempLine)
+    canvas.remove(tempLine)
 
     // Calculate distance to ensure meaningful walls
     const distance = Math.sqrt(
-      Math.pow(pointer.x - startPoint.x, 2) + Math.pow(pointer.y - startPoint.y, 2)
+      Math.pow(endX - startPoint.x, 2) + Math.pow(endY - startPoint.y, 2)
     )
 
     if (distance > 20) {
-      // Create permanent wall
-      const wall = new fabric.Line([startPoint.x, startPoint.y, pointer.x, pointer.y], {
+      // Create permanent wall with snapped coordinates
+      const wall = new fabric.Line([startPoint.x, startPoint.y, endX, endY], {
         stroke: '#374151',
         strokeWidth: 10,
         selectable: true,
@@ -229,19 +251,19 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
         name: 'Ściana',
         x1: startPoint.x,
         y1: startPoint.y,
-        x2: pointer.x,
-        y2: pointer.y,
+        x2: endX,
+        y2: endY,
         color: '#374151',
         strokeWidth: 10
       }
 
       addRoomElement(wallElement)
 
-      // Ciągłe rysowanie - nowy początek od końca poprzedniej ściany
-      drawingRef.current.startPoint = pointer
+      // Ciągłe rysowanie - nowy początek od końca poprzedniej ściany (snapped)
+      drawingRef.current.startPoint = { x: endX, y: endY }
       
       // Create new temporary line for next wall
-      const newLine = new fabric.Line([pointer.x, pointer.y, pointer.x, pointer.y], {
+      const newLine = new fabric.Line([endX, endY, endX, endY], {
         stroke: '#374151',
         strokeWidth: 10,
         selectable: false,
@@ -475,6 +497,44 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
     setSelectedElement(fabricObject)
   }
 
+  const handleBackgroundImageUpload = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      fabric.Image.fromURL(event.target.result, (img) => {
+        const canvas = fabricCanvasRef.current
+        if (!canvas) return
+
+        // Scale image to fit canvas
+        const scaleX = canvas.width / img.width
+        const scaleY = canvas.height / img.height
+        const scale = Math.min(scaleX, scaleY)
+
+        img.set({
+          scaleX: scale,
+          scaleY: scale,
+          selectable: false,
+          evented: false,
+          opacity: 0.5,
+          id: 'background-image'
+        })
+
+        // Remove existing background image
+        if (backgroundImageRef.current) {
+          canvas.remove(backgroundImageRef.current)
+        }
+
+        canvas.add(img)
+        canvas.sendToBack(img)
+        backgroundImageRef.current = img
+        canvas.renderAll()
+      })
+    }
+    reader.readAsDataURL(file)
+  }
+
   const drawGrid = (canvas) => {
     const width = canvas.getWidth()
     const height = canvas.getHeight()
@@ -566,6 +626,18 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
       {/* Canvas controls */}
       <div className="mt-4 flex items-center justify-between">
         <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <label className="px-3 py-1 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded cursor-pointer transition-colors">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleBackgroundImageUpload}
+                className="hidden"
+              />
+              📷 Tło
+            </label>
+          </div>
+          
           <div className="flex items-center space-x-2">
             <span className="text-sm text-gray-600">Zoom:</span>
             <span className="text-sm font-medium">{zoom}%</span>
