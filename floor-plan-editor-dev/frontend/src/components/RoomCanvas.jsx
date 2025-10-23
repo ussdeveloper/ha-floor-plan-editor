@@ -178,6 +178,22 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
       opacity: 0.7,
       id: 'temp-wall'
     })
+    
+    canvas.add(line)
+    drawingRef.current.tempLine = line
+  }
+
+  const handleDrawingMove = (e, canvas) => {
+    if (!drawingRef.current.tempLine) return
+    
+    const pointer = canvas.getPointer(e.e)
+    drawingRef.current.tempLine.set({
+      x2: pointer.x,
+      y2: pointer.y
+    })
+    canvas.renderAll()
+  }
+
   const handleDrawingEnd = (e, canvas) => {
     if (!drawingRef.current.isDrawing || !drawingRef.current.tempLine) return
 
