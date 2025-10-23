@@ -1,0 +1,30 @@
+import axios from 'axios'
+
+const API_BASE = '/api'
+
+const api = {
+  // Health check
+  health: () => axios.get(`${API_BASE}/health`),
+
+  // Entities
+  getEntities: () => axios.get(`${API_BASE}/entities`).then(res => res.data),
+
+  // Floorplans
+  getFloorplans: () => axios.get(`${API_BASE}/floorplans`).then(res => res.data),
+  
+  getFloorplan: (name) => axios.get(`${API_BASE}/floorplan/${name}`).then(res => res.data),
+  
+  saveFloorplan: (name, config) => 
+    axios.post(`${API_BASE}/floorplan/save`, { name, config }).then(res => res.data),
+  
+  exportFloorplan: (name, format = 'ha-floorplan') => 
+    axios.get(`${API_BASE}/floorplan/${name}/export?format=${format}`, { responseType: 'blob' }).then(res => res.data),
+
+  addToDashboard: (name, options = {}) =>
+    axios.post(`${API_BASE}/floorplan/${name}/add-to-dashboard`, options).then(res => res.data),
+
+  getDashboards: () =>
+    axios.get(`${API_BASE}/lovelace/dashboards`).then(res => res.data),
+}
+
+export default api
