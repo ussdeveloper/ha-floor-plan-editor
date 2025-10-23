@@ -1,6 +1,6 @@
 {
   "name": "HA Floor Plan Editor (Dev)",
-  "version": "dev-20251022",
+  "version": "dev-20251023",
   "slug": "floor-plan-editor-dev",
   "description": "Graficzny edytor planów pięter dla Home Assistant (Development - eksperymentalne)",
   "url": "https://github.com/ussdeveloper/ha-floor-plan-editor",
