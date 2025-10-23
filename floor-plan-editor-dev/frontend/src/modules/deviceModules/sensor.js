@@ -1,9 +1,9 @@
-import { ThermometerIcon } from '@heroicons/react/24/outline'
+import { SignalIcon } from '@heroicons/react/24/outline'
 
 const sensor = {
   type: 'sensor',
   name: 'Czujnik',
-  icon: ThermometerIcon,
+  icon: SignalIcon,
   defaultProps: {
     width: 25,
     height: 25,

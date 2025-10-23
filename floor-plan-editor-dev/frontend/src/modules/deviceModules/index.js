@@ -1,6 +1,6 @@
-// Auto-discover all device module files in this directory using Vite's import.meta.globEager
+// Auto-discover all device module files in this directory using Vite's import.meta.glob
 // This allows adding a new device module file (e.g. `camera.js`) without touching this index.
-const modules = import.meta.globEager('./*.js')
+const modules = import.meta.glob('./*.js', { eager: true })
 
 const deviceModules = Object.entries(modules)
 	// exclude this index file
