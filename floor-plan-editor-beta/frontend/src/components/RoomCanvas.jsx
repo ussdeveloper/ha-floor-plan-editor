@@ -595,23 +595,6 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
         <div className="text-sm text-gray-500">
           Pomieszczenia: {rooms.length} | Elementy: {elements.length}
         </div>
-      </div>        drawGrid(fabricCanvasRef.current)
-                  } else {
-                    const objects = fabricCanvasRef.current.getObjects().filter(obj => obj.isGrid)
-                    objects.forEach(obj => fabricCanvasRef.current.remove(obj))
-                    fabricCanvasRef.current.renderAll()
-                  }
-                }
-              }}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <span className="text-sm text-gray-600">Siatka</span>
-          </div>
-        </div>
-
-        <div className="text-sm text-gray-500">
-          Pomieszczenia: {rooms.length} | Elementy: {elements.length}
-        </div>
       </div>
     </div>
   )
