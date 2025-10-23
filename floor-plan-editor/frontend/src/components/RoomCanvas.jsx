@@ -118,6 +118,26 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
       }
     })
 
+    // Mouse wheel zoom
+    canvas.on('mouse:wheel', (opt) => {
+      const delta = opt.e.deltaY
+      let newZoom = canvas.getZoom()
+      newZoom *= 0.999 ** delta
+      
+      // Limit zoom range: 10% - 500%
+      if (newZoom > 5) newZoom = 5
+      if (newZoom < 0.1) newZoom = 0.1
+      
+      canvas.setZoom(newZoom)
+      
+      // Update store zoom value
+      const zoomPercent = Math.round(newZoom * 100)
+      useEditorStore.setState({ zoom: zoomPercent })
+      
+      opt.e.preventDefault()
+      opt.e.stopPropagation()
+    })
+
     // Drawing events for wall tool
     canvas.on('mouse:down', (e) => {
       if (activeDrawingTool === 'draw') {
@@ -152,26 +172,6 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
       opacity: 0.7,
       id: 'temp-wall'
     })
-
-    canvas.add(line)
-    drawingRef.current.tempLine = line
-    canvas.renderAll()
-  }
-
-  const handleDrawingMove = (e, canvas) => {
-    if (!drawingRef.current.isDrawing || !drawingRef.current.tempLine) return
-
-    const pointer = canvas.getPointer(e.e)
-    const line = drawingRef.current.tempLine
-
-    line.set({
-      x2: pointer.x,
-      y2: pointer.y
-    })
-
-    canvas.renderAll()
-  }
-
   const handleDrawingEnd = (e, canvas) => {
     if (!drawingRef.current.isDrawing || !drawingRef.current.tempLine) return
 
@@ -203,6 +203,43 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
       // Add to store
       const wallElement = {
         id: wall.elementId,
+        type: 'wall',
+        name: 'Ściana',
+        x1: startPoint.x,
+        y1: startPoint.y,
+        x2: pointer.x,
+        y2: pointer.y,
+        color: '#374151',
+        strokeWidth: 10
+      }
+
+      addRoomElement(wallElement)
+
+      // Ciągłe rysowanie - nowy początek od końca poprzedniej ściany
+      drawingRef.current.startPoint = pointer
+      
+      // Create new temporary line for next wall
+      const newLine = new fabric.Line([pointer.x, pointer.y, pointer.x, pointer.y], {
+        stroke: '#374151',
+        strokeWidth: 10,
+        selectable: false,
+        evented: false,
+        opacity: 0.7,
+        id: 'temp-wall'
+      })
+
+      canvas.add(newLine)
+      drawingRef.current.tempLine = newLine
+      // Keep isDrawing true for continuous drawing
+    } else {
+      // If wall too short, stop drawing
+      drawingRef.current.isDrawing = false
+      drawingRef.current.startPoint = null
+      drawingRef.current.tempLine = null
+    }
+
+    canvas.renderAll()
+  }     id: wall.elementId,
         type: 'wall',
         name: 'Ściana',
         x1: startPoint.x,
@@ -507,29 +544,27 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
         <canvas
           ref={canvasRef}
           className={`border-2 ${
-            isOver 
-              ? 'border-blue-400 bg-blue-50' 
-              : activeDrawingTool === 'draw'
-              ? 'border-green-400 cursor-crosshair'
-              : 'border-gray-300'
-          }`}
-        />
-        
-        {isOver && (
-          <div className="absolute inset-0 bg-blue-100 bg-opacity-50 flex items-center justify-center">
-            <div className="text-blue-600 font-medium">
-              Upuść element tutaj
-            </div>
-          </div>
-        )}
-      </div>
-      
       {/* Canvas controls */}
       <div className="mt-4 flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600">Powiększenie:</span>
+            <span className="text-sm text-gray-600">Zoom:</span>
             <span className="text-sm font-medium">{zoom}%</span>
+            <button
+              onClick={() => {
+                if (fabricCanvasRef.current) {
+                  fabricCanvasRef.current.setZoom(1)
+                  useEditorStore.setState({ zoom: 100 })
+                  fabricCanvasRef.current.renderAll()
+                }
+              }}
+              className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+              title="Reset zoom (100%)"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+              </svg>
+            </button>
           </div>
           
           <div className="flex items-center space-x-2">
@@ -541,6 +576,23 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
                 if (fabricCanvasRef.current) {
                   if (enabled) {
                     drawGrid(fabricCanvasRef.current)
+                  } else {
+                    const objects = fabricCanvasRef.current.getObjects().filter(obj => obj.isGrid)
+                    objects.forEach(obj => fabricCanvasRef.current.remove(obj))
+                    fabricCanvasRef.current.renderAll()
+                  }
+                }
+              }}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <span className="text-sm text-gray-600">Siatka</span>
+          </div>
+        </div>
+
+        <div className="text-sm text-gray-500">
+          Pomieszczenia: {rooms.length} | Elementy: {elements.length}
+        </div>
+      </div>        drawGrid(fabricCanvasRef.current)
                   } else {
                     const objects = fabricCanvasRef.current.getObjects().filter(obj => obj.isGrid)
                     objects.forEach(obj => fabricCanvasRef.current.remove(obj))
