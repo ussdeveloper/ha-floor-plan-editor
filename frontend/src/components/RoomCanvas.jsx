@@ -7,6 +7,12 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
   const canvasRef = useRef(null)
   const fabricCanvasRef = useRef(null)
   const drawingRef = useRef({ isDrawing: false, startPoint: null })
+  const activeDrawingToolRef = useRef(activeDrawingTool)
+  
+  // Update ref when activeDrawingTool changes
+  useEffect(() => {
+    activeDrawingToolRef.current = activeDrawingTool
+  }, [activeDrawingTool])
   
   const { 
     elements, 
@@ -132,22 +138,22 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
       
       // Update store zoom value
       const zoomPercent = Math.round(newZoom * 100)
-      useEditorStore.setState({ zoom: zoomPercent })
-      
-      opt.e.preventDefault()
-      opt.e.stopPropagation()
-    })
-
     // Drawing events for wall tool
     canvas.on('mouse:down', (e) => {
-      if (activeDrawingTool === 'draw') {
+      if (activeDrawingToolRef.current === 'draw') {
         handleDrawingStart(e, canvas)
       }
     })
 
     canvas.on('mouse:move', (e) => {
-      if (activeDrawingTool === 'draw' && drawingRef.current.isDrawing) {
+      if (activeDrawingToolRef.current === 'draw' && drawingRef.current.isDrawing) {
         handleDrawingMove(e, canvas)
+      }
+    })
+
+    canvas.on('mouse:up', (e) => {
+      if (activeDrawingToolRef.current === 'draw') {
+        handleDrawingEnd(e, canvas)
       }
     })
 
