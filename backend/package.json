@@ -1,0 +1,25 @@
+{
+  "name": "ha-floor-plan-editor-backend",
+  "version": "1.0.0",
+  "description": "Backend server for HA Floor Plan Editor",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "ws": "^8.14.2",
+    "yaml": "^2.3.4",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.32.6",
+    "axios": "^1.6.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
