@@ -13,6 +13,25 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
   useEffect(() => {
     activeDrawingToolRef.current = activeDrawingTool
   }, [activeDrawingTool])
+
+  // ESC key to cancel drawing
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && activeDrawingTool === 'draw') {
+        // Cancel drawing mode
+        if (drawingRef.current.isDrawing && drawingRef.current.tempLine) {
+          fabricCanvasRef.current?.remove(drawingRef.current.tempLine)
+          drawingRef.current.isDrawing = false
+          drawingRef.current.tempLine = null
+          fabricCanvasRef.current?.renderAll()
+        }
+        setActiveDrawingTool('select')
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [activeDrawingTool, setActiveDrawingTool])
   
   const { 
     elements, 
@@ -189,6 +208,53 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
     const pointer = canvas.getPointer(e.e)
     const startPoint = drawingRef.current.startPoint
     
+    // Remove old ghost lines
+    ghostLinesRef.current.forEach(line => canvas.remove(line))
+    ghostLinesRef.current = []
+    
+    // Collect all existing points (wall endpoints and corners)
+    const existingPoints = []
+    canvas.getObjects().forEach(obj => {
+      if (obj.elementType === 'wall' && obj.type === 'line') {
+        existingPoints.push({ x: obj.x1, y: obj.y1 })
+        existingPoints.push({ x: obj.x2, y: obj.y2 })
+      }
+    })
+    
+    // Check for horizontal/vertical alignment (within 5px tolerance)
+    const snapTolerance = 5
+    existingPoints.forEach(point => {
+      // Horizontal alignment
+      if (Math.abs(pointer.y - point.y) < snapTolerance) {
+        const ghostLine = new fabric.Line([0, point.y, canvas.width, point.y], {
+          stroke: '#3b82f6',
+          strokeWidth: 1,
+          strokeDashArray: [5, 5],
+          selectable: false,
+          evented: false,
+          opacity: 0.5,
+          id: 'ghost-line'
+        })
+        canvas.add(ghostLine)
+        ghostLinesRef.current.push(ghostLine)
+      }
+      
+      // Vertical alignment
+      if (Math.abs(pointer.x - point.x) < snapTolerance) {
+        const ghostLine = new fabric.Line([point.x, 0, point.x, canvas.height], {
+          stroke: '#3b82f6',
+          strokeWidth: 1,
+          strokeDashArray: [5, 5],
+          selectable: false,
+          evented: false,
+          opacity: 0.5,
+          id: 'ghost-line'
+        })
+        canvas.add(ghostLine)
+        ghostLinesRef.current.push(ghostLine)
+      }
+    })
+    
     // Calculate angle and snap to 45° increments
     let dx = pointer.x - startPoint.x
     let dy = pointer.y - startPoint.y
@@ -222,8 +288,10 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
     const endX = tempLine.x2
     const endY = tempLine.y2
 
-    // Remove temporary line
+    // Remove temporary line and ghost lines
     canvas.remove(tempLine)
+    ghostLinesRef.current.forEach(line => canvas.remove(line))
+    ghostLinesRef.current = []
 
     // Calculate distance to ensure meaningful walls
     const distance = Math.sqrt(
@@ -597,7 +665,7 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
             </button>
           </div>
           <p className="text-xs text-blue-600 mt-1">
-            Kliknij i przeciągnij aby narysować ścianę
+            Kliknij i przeciągnij aby narysować ścianę • Niebieskie linie = wyrównanie • ESC = anuluj
           </p>
         </div>
       )}
