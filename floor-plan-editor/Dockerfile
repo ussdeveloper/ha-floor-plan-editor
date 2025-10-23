@@ -1,44 +1,34 @@
 ARG BUILD_FROM
 FROM $BUILD_FROM
 
-# Install Node.js and npm
+# Install Node.js and dependencies
 RUN apk add --no-cache \
     nodejs \
     npm \
     python3 \
     make \
-    g++ \
-    vips-dev
+    g++
 
 # Set working directory
-WORKDIR /usr/src/app
+WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy backend
+COPY backend/ ./backend/
+WORKDIR /app/backend
+RUN npm install --production
 
-# Install dependencies
-RUN npm ci --only=production
+# Copy and build frontend
+WORKDIR /app
+COPY frontend/ ./frontend/
+WORKDIR /app/frontend
+RUN npm install
+RUN npm run build
 
-# Copy application code
-COPY . .
-
-# Build frontend
-RUN npm run frontend:build
-
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
-
-# Change ownership
-RUN chown -R nodejs:nodejs /usr/src/app
-USER nodejs
+# Back to app root
+WORKDIR /app/backend
 
 # Expose port
 EXPOSE 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000/health || exit 1
-
-# Start application
-CMD ["npm", "start"]
+# Start backend server
+CMD ["node", "index.js"]
