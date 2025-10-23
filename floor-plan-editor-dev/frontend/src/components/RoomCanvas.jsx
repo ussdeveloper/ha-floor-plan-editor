@@ -530,6 +530,23 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
         <canvas
           ref={canvasRef}
           className={`border-2 ${
+            isOver 
+              ? 'border-blue-400 bg-blue-50' 
+              : activeDrawingTool === 'draw'
+              ? 'border-green-400 cursor-crosshair'
+              : 'border-gray-300'
+          }`}
+        />
+        
+        {isOver && (
+          <div className="absolute inset-0 bg-blue-100 bg-opacity-50 flex items-center justify-center">
+            <div className="text-blue-600 font-medium">
+              Upuść element tutaj
+            </div>
+          </div>
+        )}
+      </div>
+      
       {/* Canvas controls */}
       <div className="mt-4 flex items-center justify-between">
         <div className="flex items-center space-x-4">
