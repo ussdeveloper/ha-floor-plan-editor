@@ -245,26 +245,6 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
     }
 
     canvas.renderAll()
-  }     id: wall.elementId,
-        type: 'wall',
-        name: 'Ściana',
-        x1: startPoint.x,
-        y1: startPoint.y,
-        x2: pointer.x,
-        y2: pointer.y,
-        color: '#374151',
-        strokeWidth: 10
-      }
-
-      addRoomElement(wallElement)
-    }
-
-    // Reset drawing state
-    drawingRef.current.isDrawing = false
-    drawingRef.current.startPoint = null
-    drawingRef.current.tempLine = null
-
-    canvas.renderAll()
   }
 
   const handleAddRoomElement = (elementType, x, y) => {
