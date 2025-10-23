@@ -8,6 +8,8 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
   const fabricCanvasRef = useRef(null)
   const drawingRef = useRef({ isDrawing: false, startPoint: null })
   const activeDrawingToolRef = useRef(activeDrawingTool)
+  const backgroundImageRef = useRef(null)
+  const ghostLinesRef = useRef([])
   
   // Update ref when activeDrawingTool changes
   useEffect(() => {
