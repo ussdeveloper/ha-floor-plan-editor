@@ -138,6 +138,12 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
       
       // Update store zoom value
       const zoomPercent = Math.round(newZoom * 100)
+      useEditorStore.setState({ zoom: zoomPercent })
+      
+      opt.e.preventDefault()
+      opt.e.stopPropagation()
+    })
+
     // Drawing events for wall tool
     canvas.on('mouse:down', (e) => {
       if (activeDrawingToolRef.current === 'draw') {
@@ -153,12 +159,6 @@ const RoomCanvas = ({ activeDrawingTool, setActiveDrawingTool }) => {
 
     canvas.on('mouse:up', (e) => {
       if (activeDrawingToolRef.current === 'draw') {
-        handleDrawingEnd(e, canvas)
-      }
-    })
-
-    canvas.on('mouse:up', (e) => {
-      if (activeDrawingTool === 'draw') {
         handleDrawingEnd(e, canvas)
       }
     })
